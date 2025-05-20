@@ -10,3 +10,5 @@ export AWS_DEFAULT_REGION=us-west-2
 aws eks update-kubeconfig --name $(terraform output cluster_name)
 ```
 
+## Resources
+- https://github.com/0leksei/k8s-owasp-juice-shop
