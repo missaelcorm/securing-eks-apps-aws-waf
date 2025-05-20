@@ -1,0 +1,8 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-app-ingress-waf
+  namespace: juice-shop
+  annotations:
+    # Associate with WAF WebACL
+    alb.ingress.kubernetes.io/wafv2-acl-arn: "arn:aws:wafv2:region:account-id:regional/webacl/webacl-name/webacl-id"
