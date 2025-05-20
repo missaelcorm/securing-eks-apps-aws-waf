@@ -1,0 +1,20 @@
+apiVersion: pt.fn.crossplane.io/v1beta1
+kind: Resources
+resources:
+- base:
+    apiVersion: elbv2.aws.upbound.io/v1beta2
+    kind: LB
+    metadata:
+      annotations:
+        crossplane.io/external-name: how-to-fill
+- base:
+    apiVersion: wafv2.aws.upbound.io/v1beta1
+    kind: WebACLAssociation
+    metadata:
+      name: juice-shop
+    spec:
+      forProvider:
+        webAclArnSelector:
+          matchLabels:
+            tier: platform
+            name: managed-webacl-eks
