@@ -2,15 +2,25 @@ provider "aws" {
   region = var.region
 }
 
-provider "helm" {
-  kubernetes = {
-    host                   = module.eks.cluster_endpoint
-    cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
-    exec = {
-      api_version = "client.authentication.k8s.io/v1beta1"
-      args        = ["eks", "get-token", "--cluster-name",  module.eks.cluster_name]
-      command     = "aws"
-    }
+# provider "helm" {
+#   kubernetes = {
+#     host                   = module.eks.cluster_endpoint
+#     cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+#     exec = {
+#       api_version = "client.authentication.k8s.io/v1beta1"
+#       args        = ["eks", "get-token", "--cluster-name",  module.eks.cluster_name]
+#       command     = "aws"
+#     }
+#   }
+# }
+
+provider "kubernetes" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    args        = ["eks", "get-token", "--cluster-name",  module.eks.cluster_name]
+    command     = "aws"
   }
 }
 
@@ -99,8 +109,8 @@ module "irsa-ebs-csi" {
 }
 
 resource "aws_wafv2_web_acl" "eks" {
-  name        = "managed-rule-eks"
-  description = "EKS managed rule."
+  name        = var.eks_webacl_name
+  description = "EKS managed WebACL."
   scope       = "REGIONAL"
 
   default_action {
@@ -129,4 +139,45 @@ resource "helm_release" "crossplane" {
   version = "1.19.1"
 
   depends_on = [ module.eks ]
+}
+
+resource "kubernetes_manifest" "crossplane_aws_provider" {
+  manifest = {
+    apiVersion = "pkg.crossplane.io/v1"
+    kind       = "Provider"
+
+    metadata = {
+      name = "provider-family-aws"
+    }
+
+    spec = {
+      package = "xpkg.upbound.io/upbound/provider-family-aws:v1.21.0"
+    }
+  }
+
+  depends_on = [ helm_release.crossplane ]
+}
+
+resource "kubernetes_manifest" "crossplane_aws_provider" {
+  manifest = {
+    apiVersion = "wafv2.aws.upbound.io/v1beta1"
+    kind       = "WebACL"
+
+    metadata = {
+      name = "imported-${ws_wafv2_web_acl.eks.name}"
+      annotations = {
+        "crossplane.io/external-name" = aws_wafv2_web_acl.eks.id
+      }
+      labels = {
+        name = var.eks_webacl_name
+        tier = "platform"
+      }
+    }
+
+    spec = {
+      managementPolicies = ["Observe"]
+    }
+  }
+
+  depends_on = [ kubernetes_manifest.crossplane_aws_provider ]
 }

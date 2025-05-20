@@ -9,3 +9,9 @@ variable "eks_cluster_name" {
   type        = string
   default     = "eks-waf"
 }
+
+variable "eks_webacl_name" {
+  description = "WebACL Name for EKS"
+  type = string
+  default = "managed-webacl-eks"
+}
