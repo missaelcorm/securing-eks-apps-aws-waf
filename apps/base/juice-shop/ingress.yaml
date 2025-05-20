@@ -1,0 +1,38 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-app-ingress-waf
+  namespace: juice-shop
+  annotations:
+    # Use ALB ingress controller
+    kubernetes.io/ingress.class: alb
+    # ALB scheme
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    # Target type
+    alb.ingress.kubernetes.io/target-type: ip
+    # Associate with WAF WebACL
+    # alb.ingress.kubernetes.io/wafv2-acl-arn: "arn:aws:wafv2:region:account-id:regional/webacl/webacl-name/webacl-id"
+    # Health check path
+    alb.ingress.kubernetes.io/healthcheck-path: /
+    # Optional: SSL certificate
+    # alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:region:account:certificate/certificate-id"
+    # Optional: SSL redirect
+    # alb.ingress.kubernetes.io/ssl-redirect: '443'
+    # Optional: Listen ports
+    # alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    # Optional: Security groups
+    # alb.ingress.kubernetes.io/security-groups: sg-12345,sg-67890
+  labels:
+    app: juice-shop
+    tier: backend
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: juice-shop-svc
+            port:
+              number: 8080
