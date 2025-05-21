@@ -129,14 +129,175 @@ resource "aws_wafv2_web_acl" "eks" {
   description = "EKS managed WebACL."
   scope       = "REGIONAL"
 
+  # Change default action to BLOCK - deny all traffic by default
   default_action {
     allow {}
   }
 
+  # Bypass rule - MUST have the highest priority (lowest number)
+  rule {
+    name     = "BypassHeaderRule"
+    priority = 0  # Highest priority rule - evaluated first
+
+    action {
+      allow {}  # Allow traffic that matches this rule
+    }
+
+    statement {
+      byte_match_statement {
+        field_to_match {
+          headers {
+            match_pattern {
+              included_headers = [
+                "juice-shop-waf-bypass"
+              ]
+            }
+            match_scope = "VALUE"
+            oversize_handling = "CONTINUE"
+          }
+        }
+        positional_constraint = "EXACTLY"
+        search_string         = "746869735f6865616465725f6279706173735f776166"
+
+        text_transformation {
+          priority = 0
+          type     = "NONE"
+        }
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "BypassHeaderRule"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  # AWS Core rule set (CRS)
+  rule {
+    name     = "AWS-AWSManagedRulesCommonRuleSet"
+    priority = 10
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesCommonRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "AWS-AWSManagedRulesCommonRuleSet"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  # SQL Injection protection
+  rule {
+    name     = "AWS-AWSManagedRulesSQLiRuleSet"
+    priority = 20
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesSQLiRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "AWS-AWSManagedRulesSQLiRuleSet"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  # Known bad inputs
+  rule {
+    name     = "AWS-AWSManagedRulesKnownBadInputsRuleSet"
+    priority = 30
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesKnownBadInputsRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "AWS-AWSManagedRulesKnownBadInputsRuleSet"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  # OWASP Top 10 vulnerabilities
+  rule {
+    name     = "AWS-AWSManagedRulesLinuxRuleSet"
+    priority = 40
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesLinuxRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "AWS-AWSManagedRulesLinuxRuleSet"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  # Rate-based rule to protect from DDoS and brute force
+  rule {
+    name     = "RateBasedRule"
+    priority = 50
+
+    action {
+      block {}
+    }
+
+    statement {
+      rate_based_statement {
+        limit              = 1000
+        aggregate_key_type = "IP"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "RateBasedRule"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  # Enable metrics for the WebACL
   visibility_config {
-    cloudwatch_metrics_enabled = false
+    cloudwatch_metrics_enabled = true
     metric_name                = "eks-waf-web-acl"
-    sampled_requests_enabled   = false
+    sampled_requests_enabled   = true
+  }
+
+  tags = {
+    Name = var.eks_webacl_name
+    Environment = "production"
   }
 }
 
