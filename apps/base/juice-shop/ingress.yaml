@@ -5,7 +5,7 @@ metadata:
   namespace: juice-shop
   annotations:
     # Use ALB ingress controller
-    kubernetes.io/ingress.class: alb
+    # kubernetes.io/ingress.class: alb
     # ALB scheme
     alb.ingress.kubernetes.io/scheme: internet-facing
     # Target type
@@ -26,6 +26,7 @@ metadata:
     app: juice-shop
     tier: backend
 spec:
+  ingressClassName: alb
   rules:
   - http:
       paths:
