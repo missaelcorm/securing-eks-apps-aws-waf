@@ -108,6 +108,22 @@ module "irsa-ebs-csi" {
   oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
 }
 
+module "aws-load-balancer-controller" {
+  source    = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "5.55.0"
+
+  create_role                   = true
+  role_name                     = "load-balancer-controller"
+  attach_load_balancer_controller_policy = true
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["kube-system:aws-load-balancer-controller"]
+    }
+  }
+}
+
 resource "aws_wafv2_web_acl" "eks" {
   name        = var.eks_webacl_name
   description = "EKS managed WebACL."
@@ -131,53 +147,41 @@ module "ssm_waf_webacl_arn" {
   value = aws_wafv2_web_acl.eks.arn
 }
 
-resource "helm_release" "crossplane" {
-  name       = "crossplane"
-  repository = "https://charts.crossplane.io/stable"
-  chart      = "crossplane"
-  create_namespace = true
-  version = "1.19.1"
-
-  depends_on = [ module.eks ]
-}
-
-resource "kubernetes_manifest" "crossplane_aws_provider" {
-  manifest = {
-    apiVersion = "pkg.crossplane.io/v1"
-    kind       = "Provider"
-
-    metadata = {
-      name = "provider-family-aws"
+resource "helm_release" "aws-load-balancer-controller" {
+  name       = "aws-load-balancer-controller"
+  repository = "https://aws.github.io/eks-charts"
+  chart      = "aws-load-balancer-controller"
+  namespace  = "kube-system"
+  version    = "1.13.2"
+  atomic     = true
+  replace    = true
+  
+  set = [
+    {
+      name  = "serviceAccount.name"
+      value = "aws-load-balancer-controller"
+    },
+    {
+      name  = "serviceAccount.create"
+      value = "true"
+    },
+    {
+      name  = "clusterName"
+      value = module.eks.cluster_name
+    },
+    {
+      name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+      value = module.aws-load-balancer-controller.iam_role_arn
+    },
+    {
+      name  = "vpcId"
+      value = module.vpc.vpc_id
+    },
+    {
+      name  = "region"
+      value = var.region
     }
+  ]
 
-    spec = {
-      package = "xpkg.upbound.io/upbound/provider-family-aws:v1.21.0"
-    }
-  }
-
-  depends_on = [ helm_release.crossplane ]
-}
-
-resource "kubernetes_manifest" "crossplane_aws_provider" {
-  manifest = {
-    apiVersion = "wafv2.aws.upbound.io/v1beta1"
-    kind       = "WebACL"
-
-    metadata = {
-      name = "imported-${ws_wafv2_web_acl.eks.name}"
-      annotations = {
-        "crossplane.io/external-name" = aws_wafv2_web_acl.eks.id
-      }
-      labels = {
-        name = var.eks_webacl_name
-        tier = "platform"
-      }
-    }
-
-    spec = {
-      managementPolicies = ["Observe"]
-    }
-  }
-
-  depends_on = [ kubernetes_manifest.crossplane_aws_provider ]
+  depends_on = [ module.eks, module.aws-load-balancer-controller]
 }
