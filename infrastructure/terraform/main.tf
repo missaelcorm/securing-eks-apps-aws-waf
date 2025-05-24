@@ -149,7 +149,7 @@ resource "aws_wafv2_web_acl" "eks" {
           headers {
             match_pattern {
               included_headers = [
-                "juice-shop-waf-bypass"
+                "waf-bypass"
               ]
             }
             match_scope = "VALUE"
