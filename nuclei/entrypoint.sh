@@ -2,7 +2,7 @@
 
 HEADER_FLAG=""
 
-[[ -z "$HEADER_WAF_BYPASS" ]] && HEADER_FLAG="" || HEADER_FLAG="-H"
+[[ -z "$HEADER_WAF_BYPASS" || "$HEADER_WAF_BYPASS" == "" ]] && HEADER_FLAG="" || HEADER_FLAG="-H"
 [[ "$DEBUG" == "1" ]] && DEBUG_FLAG="-debug" || DEBUG_FLAG=""
 
 set -x
