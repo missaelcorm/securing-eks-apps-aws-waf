@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: web-app-ingress-waf
+  name: juice-shop-ingress-waf
   namespace: juice-shop
   annotations:
     # Use ALB ingress controller
