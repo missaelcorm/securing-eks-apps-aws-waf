@@ -1,0 +1,20 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: webgoat-svc
+  namespace: webgoat
+  labels:
+    app: webgoat
+spec:
+  type: ClusterIP
+  selector:
+    app: webgoat
+  ports:
+    - name: webgoat
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+    - name: webwolf
+      port: 9090
+      targetPort: 9090
+      protocol: TCP
