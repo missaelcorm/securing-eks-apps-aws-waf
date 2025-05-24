@@ -7,7 +7,7 @@ services:
       - ./entrypoint.sh:/entrypoint.sh
     entrypoint: ["./entrypoint.sh"]
     environment:
-      WORKFLOW: /templates/workflow.yaml
-      TARGET: http://k8s-webgoat-webgoati-5d00254f78-824434965.us-west-2.elb.amazonaws.com/WebGoat
-      HEADER_WAF_BYPASS: "waf-bypass: 746869735f6865616465725f6279706173735f776166"x
-      DEBUG: 0
+      WORKFLOW: "${WORKFLOW?}"
+      TARGET: "${TARGET?}"
+      HEADER_WAF_BYPASS: "${HEADER_WAF_BYPASS-}"
+      DEBUG: "${DEBUG-0}"
