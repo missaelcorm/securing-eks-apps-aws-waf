@@ -1,0 +1,22 @@
+id: waf-command-injection
+info:
+  name: WAF Command Injection
+  author: security-team
+  severity: critical
+  tags: waf,rce
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?cmd=; cat /etc/passwd"
+      - "{{BaseURL}}/?exec=| whoami"
+      - "{{BaseURL}}/?run=`id`"
+      - "{{BaseURL}}/?execute=$(cat /etc/passwd)"
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [403]
+      - type: word
+        words: ["403 Forbidden"]
+        part: body

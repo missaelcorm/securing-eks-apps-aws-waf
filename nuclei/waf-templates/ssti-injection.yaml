@@ -1,0 +1,22 @@
+id: waf-ssti-injection
+info:
+  name: WAF SSTI Injection
+  author: security-team
+  severity: high
+  tags: waf,ssti
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?template={{7*7}}"
+      - "{{BaseURL}}/?view=${7*7}"
+      - "{{BaseURL}}/?page=<%= 7*7 %>"
+      - "{{BaseURL}}/?render={{config}}"
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [403]
+      - type: word
+        words: ["403 Forbidden"]
+        part: body

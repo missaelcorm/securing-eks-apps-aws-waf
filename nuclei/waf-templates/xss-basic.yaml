@@ -1,0 +1,22 @@
+id: waf-xss-basic
+info:
+  name: WAF XSS Basic
+  author: security-team
+  severity: high
+  tags: waf,xss
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?q=<script>alert('XSS')</script>"
+      - "{{BaseURL}}/?search=<img src=x onerror=alert(1)>"
+      - "{{BaseURL}}/?input=javascript:alert('XSS')"
+      - "{{BaseURL}}/?data=<svg onload=alert(1)>"
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [403]
+      - type: word
+        words: ["403 Forbidden"]
+        part: body

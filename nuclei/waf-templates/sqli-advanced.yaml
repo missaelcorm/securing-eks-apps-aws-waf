@@ -1,0 +1,22 @@
+id: waf-sqli-advanced
+info:
+  name: WAF SQL Injection Advanced
+  author: security-team
+  severity: high
+  tags: waf,sqli,advanced
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?id=1/**/UNION/**/SELECT/**/"
+      - "{{BaseURL}}/?id=1%20UNION%20SELECT%20NULL"
+      - "{{BaseURL}}/?id=1+UnIoN+SeLeCt+1,2,3"
+      - "{{BaseURL}}/?id=1 AND (SELECT COUNT(*) FROM information_schema.tables)>0"
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [403]
+      - type: word
+        words: ["403 Forbidden"]
+        part: body

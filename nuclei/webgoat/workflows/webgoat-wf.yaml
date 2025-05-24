@@ -1,0 +1,20 @@
+id: webgoat-workflow
+
+info:
+  name: WebGoat Workflows for pentesting
+  author: security-researcher
+  severity: info
+  description: Run set of templates for pentesting WebGoat webapp
+
+workflows:
+  - template: /webgoat/templates/auth-webgoat.yaml
+    subtemplates:
+      - template: /webgoat/templates/a3-sqli-advanced-2.yaml
+      - template: /webgoat/templates/a3-sqli-advanced-4.yaml
+      - template: /webgoat/templates/a5-xxe-3.yaml
+      - template: /webgoat/templates/a5-xxe-7.yaml
+      - template: /webgoat/templates/a6-outdated-components-12.yaml
+      - template: /webgoat/templates/a7-auth-bypass-2.yaml
+      - template: /webgoat/templates/a7-insecure-login-2.yaml
+      - template: /webgoat/templates/a7-jwt-4.yaml
+      # - template: /webgoat/templates/a7-jwt-6.yaml

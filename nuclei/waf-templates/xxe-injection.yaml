@@ -1,0 +1,28 @@
+id: waf-xxe-injection
+info:
+  name: WAF XXE Injection
+  author: security-team
+  severity: high
+  tags: waf,xxe
+
+http:
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/xml"
+      - "{{BaseURL}}/upload"
+    
+    headers:
+      Content-Type: "application/xml"
+    
+    body: |
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]>
+      <data>&xxe;</data>
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [403]
+      - type: word
+        words: ["403 Forbidden"]
+        part: body

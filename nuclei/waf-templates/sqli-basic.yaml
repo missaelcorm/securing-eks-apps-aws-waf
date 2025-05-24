@@ -1,0 +1,22 @@
+id: waf-sqli-basic
+info:
+  name: WAF SQL Injection Basic
+  author: security-team
+  severity: high
+  tags: waf,sqli
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?id=1' OR '1'='1"
+      - "{{BaseURL}}/?id=1 UNION SELECT 1,2,3--"
+      - "{{BaseURL}}/?search=' OR 1=1#"
+      - "{{BaseURL}}/?user=admin'--"
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [403]
+      - type: word
+        words: ["403 Forbidden"]
+        part: body

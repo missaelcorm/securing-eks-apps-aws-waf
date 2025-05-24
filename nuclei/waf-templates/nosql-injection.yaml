@@ -1,0 +1,22 @@
+id: waf-nosql-injection
+info:
+  name: WAF NoSQL Injection
+  author: security-team
+  severity: high
+  tags: waf,nosql
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?user[$ne]=null"
+      - "{{BaseURL}}/?search[$regex]=.*"
+      - "{{BaseURL}}/?filter[$where]=function(){return true}"
+      - "{{BaseURL}}/?query={\"$gt\":\"\"}"
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [403]
+      - type: word
+        words: ["403 Forbidden"]
+        part: body

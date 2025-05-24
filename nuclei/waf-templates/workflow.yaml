@@ -1,0 +1,18 @@
+id: waf-testing-workflow
+
+info:
+  name: "WAF Security Testing Workflow"
+  author: "security-team"
+  description: "Simple WAF testing workflow with all attack types"
+  severity: high
+
+workflows:
+  - template: /templates/sqli-basic.yaml
+  - template: /templates/sqli-advanced.yaml
+  - template: /templates/xss-basic.yaml
+  - template: /templates/xss-advanced.yaml
+  - template: /templates/path-traversal.yaml
+  - template: /templates/command-injection.yaml
+  - template: /templates/xxe-injection.yaml
+  - template: /templates/ssti-injection.yaml
+  - template: /templates/nosql-injection.yaml

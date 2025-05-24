@@ -1,0 +1,22 @@
+id: waf-xss-advanced
+info:
+  name: WAF XSS Advanced
+  author: security-team
+  severity: high
+  tags: waf,xss,evasion
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/?q=%3Cscript%3Ealert(1)%3C/script%3E"
+      - "{{BaseURL}}/?search=<ScRiPt>alert(String.fromCharCode(88,83,83))</ScRiPt>"
+      - "{{BaseURL}}/?data=<svg/onload=alert(1)>"
+      - "{{BaseURL}}/?param=<script>eval(atob('YWxlcnQoMSk='))</script>"
+    
+    matchers-condition: and
+    matchers:
+      - type: status
+        status: [403]
+      - type: word
+        words: ["403 Forbidden"]
+        part: body
