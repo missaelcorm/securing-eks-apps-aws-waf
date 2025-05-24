@@ -7,4 +7,8 @@ resources:
   - ./webgoat/
   # - waf-association/
 patches:
-  - path: ./patches/ingress-waf-patch.yaml
+  - target: 
+      group: networking.k8s.io
+      version: v1
+      kind: Ingress
+    path: ./patches/ingress-waf-patch.yaml
