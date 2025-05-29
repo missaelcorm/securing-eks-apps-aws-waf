@@ -23,7 +23,7 @@ kustomize build . | envsubst | kubectl apply -f -
 
 ```shell
 # Target webgoat ALB ingress
-export TARGET=$(kubectl -n webgoat get ingress webgoat-ingress-waf -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+export TARGET="http://$(kubectl -n webgoat get ingress webgoat-ingress-waf -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')/WebGoat"
 # In container
 export WORKFLOW=/templates/workflow.yaml
 # From WebACL Rule for bypassing if header is present
