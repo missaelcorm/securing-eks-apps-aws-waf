@@ -22,6 +22,11 @@ kustomize build . | envsubst | kubectl apply -f -
 ```
 
 ```shell
+# Juice Shop URL
+echo "http://$(kubectl -n juice-shop get ingress juice-shop-ingress-waf -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
+```
+
+```shell
 # Target webgoat ALB ingress
 export TARGET="http://$(kubectl -n webgoat get ingress webgoat-ingress-waf -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')/WebGoat"
 # In container
